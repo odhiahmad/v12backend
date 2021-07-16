@@ -1,5 +1,5 @@
 {
-  "name": "absensiweb",
+  "name": "v-12",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -8,16 +8,24 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
-    "@fortawesome/vue-fontawesome": "^2.0.2",
     "axios": "^0.21.1",
     "buefy": "^0.9.7",
-    "core-js": "^3.6.5",
+    "chart.js": "^3.4.1",
+    "js-cookie": "^2.2.1",
     "jwt-decode": "^3.1.2",
-    "ky": "^0.28.5",
+    "make-dir": "^3.1.0",
+    "mkdirp": "^0.5.5",
+    "moment": "^2.29.1",
     "nprogress": "^0.2.0",
+    "secure-ls": "^1.2.6",
+    "vee-validate": "^3.4.10",
     "vue": "^2.6.11",
+    "vue-chartjs": "^3.5.1",
     "vue-router": "^3.5.1",
-    "vuex": "^3.6.2"
+    "vue-select": "^3.11.2",
+    "vuex": "^3.6.2",
+    "vuex-persistedstate": "^4.0.0-beta.3",
+    "vuex-router-sync": "^5.0.0"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.0",

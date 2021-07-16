@@ -1,42 +1,44 @@
 import Vue from 'vue'
 import App from './App.vue'
 import Buefy from 'buefy'
-import 'buefy/dist/buefy.css'
 import VueRouter from 'vue-router'
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 import router from './router/index'
 import axios from 'axios'
 import { setHeaderToken } from './components/utils/auth'
 import store from './components/store'
+import vSelect from "vue-select";
+import Vuex from 'vuex'
+import 'vue-select/dist/vue-select.css';
+import "./vee-validate";
+import "../src/filters/filter"
+import 'buefy/dist/buefy.css'
 
-Vue.component('vue-fontawesome', FontAwesomeIcon);
-
+Vue.component("v-select", vSelect);
+Vue.prototype.$http = axios;
 axios.defaults.baseURL = 'http://localhost:3000/api/'
 Vue.use(VueRouter)
-Vue.use(Buefy, {
-  defaultIconComponent: 'vue-fontawesome',
-});
+
+Vue.use(Vuex)
+Vue.use(Buefy)
 Vue.config.productionTip = false
 const token = localStorage.getItem('token');
+if (token) {
+  setHeaderToken(token)
+}
 
-if (token) { 
-  setHeaderToken(token) 
-} 
+Vue.config.productionTip = false;
+store.dispatch('getMenuUser')
+store.dispatch('getMenu')
+store.dispatch('getRole')
 
-// module.exports = {   
-//   devServer: { 
-//     port: 300,     
-//     proxy: "http://localhost"   
-//   } 
-// }
+store.dispatch('get_user')
+  .then(() => {
 
-store.dispatch('get_user', token)
-.then(() => {
-  new Vue({
-    router,
-    store,
-    render: h => h(App)
-  }).$mount('#app')
-}).catch((error) => {
-  console.error(error);
-})
+    new Vue({
+      router,
+      store,
+      render: h => h(App)
+    }).$mount('#app')
+  }).catch((error) => {
+    console.error(error);
+  })
