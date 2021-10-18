@@ -25,6 +25,16 @@ Vue.filter('statusMenu', function (value) {
 
 })
 
+
+Vue.filter('status', function (value) {
+    if (parseInt(value) === 0) {
+        return "Tidak Aktif"
+    } else if (parseInt(value) === 1) {
+        return "Aktif"
+    }
+
+})
+
 // Vue.filter('role', function (value) {
 //     if (parseInt(value) === 0) {
 //         return "Root Menu"

@@ -1,6 +1,7 @@
 import { ValidationObserver } from "vee-validate";
 import BInputValidations from "./../../../inputs/BInputValidations";
 import BSelectValidations from "./../../../inputs/BSelectValidations";
+// import BSelectMultipleValidations from "./../../../inputs/BSelectMultipleValidations";
 
 export default {
     components: {
@@ -13,12 +14,10 @@ export default {
             form: {
                 id: "",
                 nama: "",
-                username: "",
+                email: "",
                 password: "",
-                passwordEdit: "",
                 role: "",
                 confirmation: "",
-                gaji: "",
             },
             isCardModalActive: false,
             data: [],
@@ -33,7 +32,7 @@ export default {
             cariValue: "",
             total: 0,
             loading: false,
-            sortField: "username",
+            sortField: "email",
             sortOrder: "desc",
             defaultSortOrder: "desc",
             page: 0,
@@ -55,7 +54,7 @@ export default {
 
 
             return this.dataRole
-        },
+        }
 
     },
     methods: {
@@ -64,7 +63,7 @@ export default {
             this.form.role = value.value
         },
         resetForm() {
-            this.username = "";
+            this.email = "";
             this.password = "";
             this.confirmation = "";
             requestAnimationFrame(() => {
@@ -75,10 +74,10 @@ export default {
             this.editMode = true;
 
             this.form.id = this.data[id].id;
-            this.form.nama = this.data[id].pegawai.nama;
-            this.form.username = this.data[id].username;
+            this.form.nama = this.data[id].nama;
+            this.form.email = this.data[id].email;
+            this.form.password = "";
             this.form.role = this.data[id].role;
-            this.form.gaji = this.data[id].pegawai.gaji;
             this.isCardModalActive = true;
 
             for (let i = 0; i < this.dataRole.length; i++) {
@@ -94,7 +93,7 @@ export default {
             this.resetForm();
             this.editMode = false;
             this.form.nama = "";
-            this.form.username = "";
+            this.form.email = "";
             this.form.role = "";
             this.form.gaji = "";
             this.isCardModalActive = true;
@@ -106,14 +105,31 @@ export default {
                     .patch("users/editUser", { data: this.form })
                     .then(({ data }) => {
                         console.log(data);
-                        this.loading = false;
-                        this.isCardModalActive = false;
-                        this.$buefy.toast.open({
-                            message: "Berhasil mengedit user " + " " + this.form.nama,
-                            type: "is-success",
-                        });
-                        this.resetForm();
-                        this.loadAsyncData();
+                        if (data.berhasil === true) {
+
+                            this.loading = false;
+                            this.isCardModalActive = false;
+                            this.$buefy.toast.open({
+                                message: "Berhasil mengedit user " + " " + this.form.nama,
+                                type: "is-success",
+                            });
+                            this.resetForm();
+                            this.loadAsyncData();
+                        } else {
+                            this.loading = false;
+                            this.isCardModalActive = false;
+                            this.$buefy.dialog.alert({
+                                title: "Pesan",
+                                message: data.pesan,
+                                type: 'is-danger',
+                                hasIcon: true,
+                                icon: 'times-circle',
+                                iconPack: 'fa',
+                                ariaRole: 'alertdialog',
+                                ariaModal: true
+                            });
+                        }
+
                     })
                     .catch((error) => {
                         this.loading = false;

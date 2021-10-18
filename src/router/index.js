@@ -36,6 +36,7 @@ let router = new Router({
             redirect: '/home',
             meta: {
                 requiresAuth: true,
+                linkText: "Home"
             },
             children: listMenu
         },

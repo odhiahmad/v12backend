@@ -8,16 +8,19 @@ export default {
   state: {
     user: null,
     isLoggedIn: false,
+    menuUser: false,
 
   },
   mutations: {
     set_user(state, data) {
       state.user = data
       state.isLoggedIn = true
+
     },
     reset_user(state) {
       state.user = null
       state.isLoggedIn = false
+
     }
   },
   getters: {
@@ -28,23 +31,25 @@ export default {
       return state.user
     },
 
+
   },
   actions: {
     login({ dispatch, commit }, data) {
       return new Promise((resolve, reject) => {
-        axios.post('users/login', data)
+        axios.post('auth/login', data)
           .then(response => {
-            if (response.data.berhasil == true) {
+            if (response.data.berhasil === true) {
+              resolve(response)
               const token = response.data.token
               localStorage.setItem('token', token)
               setHeaderToken(token)
-
               store.dispatch('getMenuUser')
               store.dispatch('getMenu')
               store.dispatch('getRole')
               dispatch('get_user')
-              resolve(response)
+
             } else {
+              resolve(response)
               commit('reset_user')
               localStorage.removeItem('token')
             }

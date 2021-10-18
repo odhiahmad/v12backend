@@ -1,5 +1,23 @@
 <template>
   <section>
+    <header class="docs-header" style="margin-top: 20px">
+      <div class="columns">
+        <div class="column">
+          <h2 class="title">Halaman {{ $route.meta.linkText }}</h2>
+        </div>
+        <div class="column">
+          <nav style="float: right" aria-label="breadcrumbs" class="breadcrumb">
+            <ul>
+              <li v-for="(route, index) in $route.matched" :key="index">
+                <router-link class="active" :to="{ name: route.name }">
+                  {{ route.meta.linkText }}
+                </router-link>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </header>
     <div class="columns headerAtas">
       <div class="column is-8">
         <b-button
@@ -59,10 +77,6 @@
       aria-previous-label="Previous page"
       aria-page-label="Page"
       aria-current-label="Current page"
-      detailed
-      detail-key="id"
-      detail-transition="fade"
-      @details-open="(row) => $buefy.toast.open(`Detail User ${row.username}`)"
       :show-detail-icon="true"
       :checked-rows.sync="checkedRows"
       :check="
@@ -84,12 +98,12 @@
       >
         {{ props.index + 1 }}
       </b-table-column>
-      <b-table-column field="name" label="Nama" v-slot="props">
-        {{ props.row.pegawai.nama }}
+      <b-table-column field="nama" label="Nama" sortable v-slot="props">
+        {{ props.row.nama }}
       </b-table-column>
-      <b-table-column field="username" label="Username" sortable v-slot="props">
+      <b-table-column field="email" label="Username" sortable v-slot="props">
         <span class="tag">
-          {{ props.row.username }}
+          {{ props.row.email }}
         </span>
       </b-table-column>
       <b-table-column
@@ -103,19 +117,20 @@
           {{ props.row.roleUser.keterangan }}
         </span>
       </b-table-column>
+
+      <b-table-column field="createdAt" label="Di Buat" v-slot="props" sortable>
+        {{ props.row.createdAt | tanggalIndonesia }}
+      </b-table-column>
       <b-table-column
-        field="gaji"
+        field="status"
         centered
-        label="Gaji"
+        label="Status"
         sortable
         v-slot="props"
       >
         <span class="tag">
-          {{ props.row.pegawai.gaji }}
+          {{ props.row.status | status }}
         </span>
-      </b-table-column>
-      <b-table-column label="Di Buat" v-slot="props">
-        {{ props.row.createdAt | tanggalIndonesia }}
       </b-table-column>
       <b-table-column label="Action" v-slot="props">
         <b-button
@@ -127,26 +142,6 @@
           icon-left="note"
         >
           Edit
-        </b-button>
-        <b-button
-          v-if="props.row.aktif === 1"
-          :v-model="props.index"
-          type="is-danger"
-          size="is-small"
-          @click="confirmNonAktif(props.row.id, props.index)"
-          icon-left="close"
-        >
-          Non Aktif
-        </b-button>
-        <b-button
-          v-if="props.row.aktif === 0"
-          :v-model="props.index"
-          type="is-danger is-light"
-          size="is-small"
-          @click="confirmAktif(props.row.id, props.index)"
-          icon-left="check"
-        >
-          Aktif
         </b-button>
       </b-table-column>
       <template #detail="props">
@@ -201,9 +196,9 @@
               <BInputValidations
                 rules="required|alpha"
                 type="text"
-                placeholder="Masukan username, usahakan uniq"
+                placeholder="Masukan email, usahakan uniq"
                 label="Username *"
-                v-model="form.username"
+                v-model="form.email"
               />
               <BInputValidations
                 v-if="editMode === true"
@@ -211,7 +206,7 @@
                 placeholder="masukan password"
                 label="Ubah Password"
                 rules=""
-                v-model="form.passwordEdit"
+                v-model="form.password"
                 password-reveal
               />
               <BInputValidations
@@ -242,13 +237,6 @@
                 :options="roleVuex"
               >
               </BSelectValidations>
-              <BInputValidations
-                rules="required|numeric|min:6"
-                type="text"
-                placeholder="Masukan gaji"
-                label="Gaji *"
-                v-model="form.gaji"
-              />
               <div class="buttons" style="margin-top: 20px">
                 <button
                   class="button is-success"

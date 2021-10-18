@@ -1,40 +1,68 @@
 <template>
   <section>
+    <header class="docs-header" style="margin-top: 20px">
+      <div class="columns">
+        <div class="column">
+          <h2 class="title">Halaman {{ $route.meta.linkText }}</h2>
+        </div>
+        <div class="column">
+          <nav style="float: right" aria-label="breadcrumbs" class="breadcrumb">
+            <ul>
+              <li v-for="(route, index) in $route.matched" :key="index">
+                <router-link class="active" :to="{ name: route.name }">
+                  {{ route.meta.linkText }}
+                </router-link>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </header>
     <div class="columns headerAtas">
       <div class="column is-8">
-        <b-button
-          :disabled="!aktifButton"
-          style="margin-right: 10px"
-          type="is-success"
-          size="is-small"
-          @click="tambahView"
-          icon-left="plus"
+        <div
+          style="float: left"
+          v-for="(aksi, index) in aksiRoleUser"
+          :key="index"
         >
-          Tambah Menu
-        </b-button>
-        <b-button
-          style="margin-right: 10px"
-          :disabled="aktifButton"
-          type="is-success"
-          size="is-small"
-          @click="confirmAktifBanyak"
-          icon-left="check"
-        >
-          Aktifkan Menu
-        </b-button>
-        <b-button
-          :disabled="aktifButton"
-          type="is-success"
-          size="is-small"
-          @click="confirmNonAktifBanyak"
-          icon-left="check"
-        >
-          Non Aktifkan Menu
-        </b-button>
-      </div>
+          <b-button
+            :disabled="!aktifButton"
+            style="margin-right: 10px"
+            type="is-success"
+            size="is-small"
+            v-show="aksi === 'create'"
+            @click="tambahView"
+            icon-left="plus"
+          >
+            Tambah Menu
+          </b-button>
+          <b-button
+            style="margin-right: 10px"
+            :disabled="aktifButton"
+            type="is-success"
+            size="is-small"
+            @click="confirmAktifBanyak"
+            icon-left="check"
+            v-show="aksi === 'update'"
+          >
+            Aktifkan Menu
+          </b-button>
 
+          <b-button
+            style="margin-right: 10px"
+            :disabled="aktifButton"
+            type="is-success"
+            size="is-small"
+            @click="confirmNonAktifBanyak"
+            icon-left="check"
+            v-show="aksi === 'update'"
+          >
+            Non Aktifkan Menu
+          </b-button>
+        </div>
+      </div>
       <div class="column">
-        <b-field grouped message="What do you want to search?">
+        <b-field grouped>
           <b-input
             placeholder="Search..."
             v-model="cariValue"
@@ -59,11 +87,6 @@
       aria-previous-label="Previous page"
       aria-page-label="Page"
       aria-current-label="Current page"
-      detailed
-      detail-key="id"
-      detail-transition="fade"
-      @details-open="(row) => $buefy.toast.open(`Detail Menu ${row.username}`)"
-      :show-detail-icon="true"
       :checked-rows.sync="checkedRows"
       :check="
         checkedRows.length > 0 ? (aktifButton = false) : (aktifButton = true)
@@ -84,7 +107,7 @@
       >
         {{ props.index + 1 }}
       </b-table-column>
-      <b-table-column field="nama" label="Nama Menu" v-slot="props">
+      <b-table-column field="nama" label="Nama Menu" sortable v-slot="props">
         {{ props.row.nama }}
       </b-table-column>
       <b-table-column
@@ -110,21 +133,30 @@
         </span>
       </b-table-column>
       <b-table-column
-        field="status_menu"
+        field="statusMenu"
         centered
         label="Status"
         sortable
         v-slot="props"
       >
         <span class="tag">
-          {{ props.row.status_menu | statusMenu }}
+          {{ props.row.statusMenu | statusMenu }}
         </span>
       </b-table-column>
-
-      <b-table-column label="Di Buat" v-slot="props">
+      <b-table-column
+        field="status"
+        centered
+        label="Aktif"
+        sortable
+        v-slot="props"
+      >
+        <span class="tag">
+          {{ props.row.status | status }}
+        </span>
+      </b-table-column>
+      <b-table-column field="createdAt" label="Di Buat" v-slot="props" sortable>
         {{ props.row.createdAt | tanggalIndonesia }}
       </b-table-column>
-
       <b-table-column width="300px" label="Action" v-slot="props">
         <nav
           style="float: left"
@@ -134,21 +166,12 @@
           <b-button
             style="margin-right: 10px"
             :v-model="props.index"
-            type="is-white is-light"
+            type="is-primary"
             size="is-small"
+            v-show="aksi === 'update'"
             v-if="aksi === 'update'"
             @click.native="update(props.index)"
-            icon-left="note"
-          >
-            {{ aksi | hurufBesar }}
-          </b-button>
-          <b-button
-            style="margin-right: 10px"
-            :v-model="props.index"
-            type="is-white is-light"
-            size="is-small"
-            v-else
-            icon-left="note"
+            icon-left="pencil"
           >
             {{ aksi | hurufBesar }}
           </b-button>
@@ -185,11 +208,6 @@
             <p v-show="editMode === true" class="card-header-title">
               Edit Menu {{ form.nama }}
             </p>
-            <!-- <button class="card-header-icon" aria-label="more options">
-              <span class="icon">
-                <i class="fas fa-angle-down" aria-hidden="true"></i>
-              </span>
-            </button> -->
           </header>
           <div class="card-content">
             <div class="content">

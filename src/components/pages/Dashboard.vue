@@ -1,7 +1,7 @@
 <template>
   <section>
     <div>
-      <b-navbar shadow spaced>
+      <b-navbar shadow spaced wrapper-class>
         <template #start>
           <b-navbar-item @click="open = true">
             <b-icon icon="menu" size="is-medium" style="margin-right: 10px">
@@ -37,7 +37,7 @@
       :right="false"
       v-model="open"
     >
-      <div style="padding: 15px">
+      <div style="padding: 15px; margin-top: 20px; margin-horinzontal: 20px">
         <img
           src="./../../assets/logo.png"
           alt="Lightweight UI components for Vue.js based on Bulma"
@@ -54,15 +54,16 @@
                       :icon="props.expanded ? 'menu-down' : 'menu-up'"
                     ></b-icon>
                   </template>
-                  <b-menu-item
-                    v-for="dma in dm.anak"
-                    :key="dma.id"
-                    :icon="dma.icon"
-                    tag="router-link"
-                    :to="{ name: dma.nama }"
-                    :label="dma.keterangan"
-                  >
-                  </b-menu-item>
+                  <div v-for="dma in dm.anak" :key="dma.id">
+                    <b-menu-item
+                      v-if="dm.anak.length > 0"
+                      :icon="dma.icon"
+                      tag="router-link"
+                      :to="{ name: dma.nama }"
+                      :label="dma.keterangan"
+                    >
+                    </b-menu-item>
+                  </div>
                 </b-menu-item>
                 <b-menu-item
                   :icon="dm.icon"
@@ -111,12 +112,23 @@ export default {
       return this.$store.getters.menuUser;
     },
     username() {
-      return this.$store.getters.user.username;
+      return this.$store.getters.user.email;
     },
   },
   methods: {
     logout() {
-      this.$store.dispatch("logout");
+      this.$buefy.dialog.confirm({
+        title: "Keluar Aplikasi",
+        message: "Apakah anda yakin ingin keluar dari aplikasi ?",
+        confirmText: "Keluar",
+        cancelText: "Kembali",
+        type: "is-warning",
+        hasIcon: true,
+        onConfirm: () => {
+          this.$store.dispatch("logout");
+          this.$buefy.toast.open("Berhasil Keluar");
+        },
+      });
     },
   },
 };

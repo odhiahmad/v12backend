@@ -9,7 +9,8 @@ export default {
 
     mutations: {
         set_menu_user(state, data) {
-            state.menuUser = data.menu
+
+            state.menuUser = data.data;
         },
         reset_menu_user(state) {
             state.menuUser = []
@@ -32,7 +33,7 @@ export default {
                 var decoded = jwt_decode(token);
 
                 return new Promise((resolve, reject) => {
-                    axios.get('users/getUserById/' + decoded.result.id)
+                    axios.get('fungsi/getFungsidanMenuByRole/' + decoded.result.role)
                         .then(response => {
                             resolve(response)
                             commit('set_menu_user', response.data)

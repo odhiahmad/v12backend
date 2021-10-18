@@ -2,7 +2,7 @@ import { ValidationObserver } from "vee-validate";
 import BInputValidations from "./../../../inputs/BInputValidations";
 import BSelectValidations from "./../../../inputs/BSelectValidations";
 import BOptionValidations from "./../../../inputs/BOptionValidations";
-
+import BTagValidations from "./../../../inputs/BTagValidations";
 import BCheckboxesValidations from "./../../../inputs/BCheckboxesValidations";
 
 export default {
@@ -12,6 +12,7 @@ export default {
         BSelectValidations,
         BOptionValidations,
         BCheckboxesValidations,
+        BTagValidations,
 
     },
     data() {
@@ -24,16 +25,34 @@ export default {
                 nama: "",
                 keterangan: "",
             },
+            formFungsi: {
+                id: "",
+                nama: "",
+                fungsi: []
+            },
+            formRole: {
+                id: "",
+                nama: "",
+                menu: []
+            },
 
             index: "",
+            indexFungsi: "",
             isCardModalActive: false,
+            isFungsiModalActive: false,
+            isFungsiEditModalActive: false,
 
             dataMenu: [],
+            dataMenuForm: [],
             dataFungsi: ["read", "update", "delete", "create"],
-
+            dataRoleMenu: [],
             data: [],
+            dataMenuAplikasi: [],
+
 
             checkedRows: [],
+
+            tambahFungsiFlag: false,
 
             editMode: false,
             aktifButton: true,
@@ -49,19 +68,86 @@ export default {
             perPage: 20,
         };
     },
+    computed: {
+        getMenuVuex() {
+
+            const menu = this.$store.getters.menu
+            var nomor = 0;
+
+            for (let i = 0; i < menu.length; i++) {
+                this.dataMenuAplikasi[nomor] = {
+                    id: menu[i].id,
+                    value: menu[i].nama,
+
+                }
+                nomor++;
+                for (let j = 0; j < menu[i].anak.length; j++) {
+                    this.dataMenuAplikasi[nomor] = {
+                        id: menu[i].anak[j].id,
+                        value: menu[i].anak[j].nama,
+
+                    }
+                    nomor++;
+                }
+            }
+
+            console.log(this.dataMenuAplikasi)
+
+            return this.dataMenuAplikasi
+        },
+    },
 
     methods: {
 
+        beforeAdding(tag) {
+            for (let i = 0; i < this.dataMenu.length; i++) {
+                if (this.dataMenu[i].userFungsi.nama === tag.value) {
+                    return null;
+                }
+            }
 
+            return tag
+
+
+        },
         resetForm() {
             requestAnimationFrame(() => {
                 this.$refs.observer.reset();
             });
         },
+        editFungsidanMenuView(id) {
+
+            this.dataMenu = [];
+            this.data[id].roleFungsi.forEach((item) => {
+                this.dataMenu.push(item);
+            });
+
+            this.form.nama = this.data[id].nama;
+            this.index = id;
+            this.isFungsiModalActive = true
+
+
+        },
+        editFungsiView(id) {
+            this.indexFungsi = id;
+            this.formFungsi.id = this.dataMenu[id].id
+            this.formFungsi.fungsi = this.dataMenu[id].fungsi
+            this.formFungsi.nama = this.dataMenu[id].nama
+            this.isFungsiEditModalActive = true
+            this.tambahFungsiFlag = false
+
+        },
+
+        tambahFungsiView() {
+
+            this.formRole.id = this.data[this.index].id
+            this.formRole.nama = this.data[this.index].nama
+            this.formRole.menu = [];
+            this.tambahFungsiFlag = true
+            this.isFungsiEditModalActive = true
+
+        },
         editView(id) {
-
-
-
             this.index = id;
             this.editMode = true;
             this.form.id = this.data[id].id;
@@ -73,20 +159,6 @@ export default {
             this.form.keterangan = this.data[id].keterangan;
             this.form.icon = this.data[id].icon;
             this.isCardModalActive = true;
-
-            if (this.form.id_menu.length === 0) {
-                this.data[id].id_menu.forEach((item) => {
-                    this.form.id_menu.push(item);
-
-                });
-            }
-            if (this.form.id_menu_sub.length === 0) {
-                this.data[id].id_menu_sub.forEach((item) => {
-                    this.form.id_menu_sub.push(item);
-
-                });
-            }
-
         },
         tambahView() {
             this.resetForm();
@@ -97,6 +169,109 @@ export default {
             this.form.nama = "";
             this.form.keterangan = "";
             this.isCardModalActive = true;
+        },
+        tambahMenuSubmit() {
+            this.loading = true;
+            this.$http
+                .post("fungsi/createFungsi", { data: this.formRole })
+                .then(({ data }) => {
+                    if (data.berhasil === false) {
+                        this.loading = false;
+                        this.$buefy.dialog.alert({
+                            title: "Pesan",
+                            message: data.messages,
+                            type: 'is-danger',
+                            hasIcon: true,
+                            icon: 'times-circle',
+                            iconPack: 'fa',
+                            ariaRole: 'alertdialog',
+                            ariaModal: true
+                        });
+                    } else if (data.berhasil === true) {
+                        this.loading = false;
+                        this.isFungsiEditModalActive = false
+                        this.isFungsiModalActive = false
+                        this.$buefy.toast.open({
+                            message: "Berhasil menambah menu ! ",
+                            type: "is-success",
+                        });
+                        this.$buefy.dialog.alert('Berhasil menambah Menu! ')
+                        this.loadAsyncData();
+                    }
+                })
+                .catch((error) => {
+                    this.loading = false;
+                    throw error;
+                });
+        },
+        editFungsiSubmit() {
+            this.loading = true;
+            this.$http
+                .patch("fungsi/editFungsi", { data: this.formFungsi })
+                .then(({ data }) => {
+                    if (data.berhasil === false) {
+                        this.loading = false;
+                        this.$buefy.dialog.alert({
+                            title: "Pesan",
+                            message: data.messages,
+                            type: 'is-danger',
+                            hasIcon: true,
+                            icon: 'times-circle',
+                            iconPack: 'fa',
+                            ariaRole: 'alertdialog',
+                            ariaModal: true
+                        });
+                    } else if (data.berhasil === true) {
+                        this.dataFungsi[this.indexFungsi].fungsi = []
+                        this.data[this.index].roleFungsi[this.indexFungsi].fungsi = []
+                        this.loading = false;
+
+                        this.$buefy.toast.open({
+                            message: "Berhasil mengedit menu ! ",
+                            type: "is-success",
+                        });
+                        this.$buefy.dialog.alert('Berhasil Edit Menu! ')
+                        this.dataFungsi[this.indexFungsi].fungsi.push(this.formFungsi.fungsi)
+                        this.data[this.index].roleFungsi[this.indexFungsi].fungsi.push(this.formFungsi.fungsi)
+                    }
+                })
+                .catch((error) => {
+                    this.loading = false;
+                    throw error;
+                });
+        },
+        hapusFungsi(id) {
+            this.formFungsi.id = this.dataMenu[id].id
+            this.$buefy.dialog.confirm({
+                title: 'Menghapus menu',
+                message: 'Apakah anda yakin ingin menghapus menu ' + this.dataMenu[id].userFungsi.nama + ' ini pada role ' + this.form.nama + ' ?',
+                cancelText: 'Kembali',
+                confirmText: 'Hapus Menu',
+                type: 'is-danger',
+                hasIcon: true,
+                onConfirm: () => {
+
+                    this.loading = true;
+                    this.$http
+                        .delete(`fungsi/hapusFungsi/${this.formFungsi.id}`)
+                        .then(() => {
+
+                            this.loading = false;
+                            this.$buefy.dialog.alert('Berhasil Hapus Menu!')
+                            this.dataMenu.splice(id, 1);
+                            this.data[this.index].roleFungsi.splice(id, 1);
+
+                            // this.dataMenu[index].aktif = 0;
+                            // this.$buefy.toast.open(
+                            //     this.dataMenu[index].nama + " berhasil di non aktifkan"
+                            // );
+                        })
+                        .catch((error) => {
+                            this.loading = false;
+                            throw error;
+                        });
+                }
+            })
         },
         createRole() {
             if (this.editMode === true) {
@@ -248,14 +423,14 @@ export default {
                 })
                 .then(({ data }) => {
                     this.data = [];
-                    this.dataMenu = [];
+                    this.dataMenuAplikasi = [];
 
                     this.total = data.totalPage;
                     data.data.rows.forEach((item) => {
                         this.data.push(item);
                     });
                     data.menu.forEach((item) => {
-                        this.dataMenu.push(item);
+                        this.dataMenuForm.push(item);
                     });
                     this.loading = false;
                 })

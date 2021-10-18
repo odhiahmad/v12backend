@@ -12,7 +12,11 @@ import 'vue-select/dist/vue-select.css';
 import "./vee-validate";
 import "../src/filters/filter"
 import 'buefy/dist/buefy.css'
+import VueApexCharts from 'vue-apexcharts'
 
+
+Vue.use(VueApexCharts)
+Vue.component('apexchart', VueApexCharts)
 Vue.component("v-select", vSelect);
 Vue.prototype.$http = axios;
 axios.defaults.baseURL = 'http://localhost:3000/api/'
@@ -21,6 +25,23 @@ Vue.use(VueRouter)
 Vue.use(Vuex)
 Vue.use(Buefy)
 Vue.config.productionTip = false
+
+axios.interceptors.response.use(
+  response => {
+    return response;
+  },
+  err => {
+    const {
+      response: { status, data }
+    } = err;
+    if (status === 401 & data.berhasil === false) {
+      store.dispatch('logout')
+    }
+
+  }
+
+);
+
 const token = localStorage.getItem('token');
 if (token) {
   setHeaderToken(token)

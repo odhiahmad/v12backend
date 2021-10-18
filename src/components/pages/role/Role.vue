@@ -1,5 +1,23 @@
 <template>
   <section>
+    <header class="docs-header" style="margin-top: 20px">
+      <div class="columns">
+        <div class="column">
+          <h2 class="title">Halaman {{ $route.meta.linkText }}</h2>
+        </div>
+        <div class="column">
+          <nav style="float: right" aria-label="breadcrumbs" class="breadcrumb">
+            <ul>
+              <li v-for="(route, index) in $route.matched" :key="index">
+                <router-link class="active" :to="{ name: route.name }">
+                  {{ route.meta.linkText }}
+                </router-link>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </header>
     <div class="columns headerAtas">
       <div class="column is-8">
         <b-button
@@ -113,6 +131,16 @@
         >
           Edit
         </b-button>
+        <b-button
+          style="margin-right: 10px"
+          :v-model="props.index"
+          type="is-warning is-light"
+          size="is-small"
+          @click="editFungsidanMenuView(props.index)"
+          icon-left="pencil"
+        >
+          Edit Menu & Fungsi
+        </b-button>
       </b-table-column>
       <template #detail="props">
         <article class="media">
@@ -148,11 +176,6 @@
             <p v-show="editMode === true" class="card-header-title">
               Edit Role {{ form.nama }}
             </p>
-            <!-- <button class="card-header-icon" aria-label="more options">
-              <span class="icon">
-                <i class="fas fa-angle-down" aria-hidden="true"></i>
-              </span>
-            </button> -->
           </header>
           <div class="card-content">
             <div class="content">
@@ -171,70 +194,186 @@
                 v-model="form.keterangan"
               />
 
-              <b>Pilih Menu *</b>
-              <br />
-              <BCheckboxesValidations rules="required" label="Role">
-                <div v-for="menu in dataMenu" :key="menu.id">
-                  <p style="margin-bottom: -1px">Menu</p>
+              <BCheckboxesValidations
+                v-if="editMode === false"
+                rules="required"
+                label="Pilih Menu *"
+              >
+                <div v-for="menu in dataMenuForm" :key="menu.id">
+                  <p
+                    style="
+                      margin-bottom: -1px;
+                      font-size: 12px;
+                      margin-right: 40px;
+                    "
+                  >
+                    Menu {{ menu.nama | hurufBesar }}
+                  </p>
                   <b-checkbox v-model="form.id_menu" :native-value="menu.id">
                     {{ menu.nama }}
                   </b-checkbox>
-                  <p v-if="menu.anak.length !== 0" style="margin-bottom: -1px">
+                  <p
+                    v-if="menu.anak.length !== 0"
+                    style="margin-bottom: -1px; font-size: 12px"
+                  >
                     Sub Menu {{ menu.nama | hurufBesar }}
                   </p>
                   <div v-for="menuAnak in menu.anak" :key="menuAnak.id">
                     <b-checkbox
-                      style="float: left"
                       v-model="form.id_menu_sub"
                       :native-value="menuAnak.id"
                     >
                       {{ menuAnak.nama }}
                     </b-checkbox>
                   </div>
-                  <br v-if="menu.anak.length !== 0" />
-                  <br v-if="menu.anak.length !== 0" />
                 </div>
               </BCheckboxesValidations>
-              <br />
-              <b>Pilih Fungsi Modul *</b>
-
-              <BCheckboxesValidations rules="required" label="Role">
-                <div v-for="menu in dataMenu" :key="menu.id">
-                  <p v-if="menu.anak.length === 0" style="margin-bottom: -1px">
-                    Fungsi Modul {{ menu.nama }}
-                  </p>
-                  <div v-if="menu.anak.length === 0" :native-value="menu.id">
-                    <b-checkbox
-                      v-for="(fungsi, index) in dataFungsi"
-                      :key="index"
-                      v-model="form.id_fungsi"
-                      :native-value="fungsi"
-                    >
-                      {{ fungsi }}
-                    </b-checkbox>
-                  </div>
-
-                  <div v-for="menuAnak in menu.anak" :key="menuAnak.id">
-                    <p style="margin-bottom: -1px">
-                      Fungsi Modul {{ menuAnak.nama | hurufBesar }}
-                    </p>
-                    <b-checkbox
-                      v-for="(fungsi, indexSub) in dataFungsi"
-                      :key="indexSub"
-                      v-model="form.id_fungsi"
-                      :native-value="fungsi"
-                    >
-                      {{ fungsi }}
-                    </b-checkbox>
-                  </div>
-                </div>
-              </BCheckboxesValidations>
-              {{ form.id_fungsi }}
 
               <div class="buttons" style="margin-top: 20px">
                 <button
                   class="button is-success"
                   @click="handleSubmit(createRole)"
+                >
+                  <span class="icon is-small">
+                    <i class="fas fa-check"></i>
+                  </span>
+                  <span>Submit</span>
+                </button>
+
+                <button class="button" @click="resetForm">
+                  <span class="icon is-small">
+                    <i class="fas fa-redo"></i>
+                  </span>
+                  <span>Reset</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ValidationObserver>
+    </b-modal>
+    <b-modal v-model="isFungsiModalActive" :width="640" scroll="keep">
+      <div class="card">
+        <header class="card-header">
+          <p class="card-header-title">
+            Edit Menu & Fungsi {{ this.form.nama }}
+          </p>
+          <b-button
+            style="margin-right: 10px; margin-top: 8px"
+            type="is-primary"
+            size="is-small"
+            @click="tambahFungsiView()"
+            icon-left="plus"
+          >
+            Tambah Fungsi
+          </b-button>
+        </header>
+        <div class="card-content">
+          <b-table :data="dataMenu">
+            <b-table-column
+              centered
+              width="20"
+              field="no"
+              label="No"
+              numeric
+              v-slot="props"
+            >
+              {{ props.index + 1 }}
+            </b-table-column>
+            <b-table-column field="nama" label="Menu" numeric v-slot="props">
+              {{ props.row.userFungsi.nama }}
+            </b-table-column>
+            <b-table-column
+              field="fungsi"
+              label="Fungsi"
+              numeric
+              v-slot="props"
+            >
+              <span
+                v-for="(fungsi, index) in props.row.fungsi"
+                :key="index"
+                class="tag"
+              >
+                {{ fungsi }}
+              </span>
+            </b-table-column>
+            <b-table-column field="nama" label="Menu" numeric v-slot="props">
+              <b-button
+                style="margin-right: 10px"
+                :v-model="props.index"
+                type="is-warning"
+                size="is-small"
+                @click="editFungsiView(props.index)"
+                icon-left="pencil"
+              >
+                Edit
+              </b-button>
+              <b-button
+                style="margin-right: 10px"
+                :v-model="props.index"
+                type="is-danger"
+                size="is-small"
+                @click="hapusFungsi(props.index)"
+                icon-left="delete"
+              >
+                Hapus
+              </b-button>
+            </b-table-column>
+          </b-table>
+        </div>
+      </div>
+    </b-modal>
+    <b-modal v-model="isFungsiEditModalActive" :width="640" scroll="keep">
+      <ValidationObserver ref="observer" v-slot="{ handleSubmit }">
+        <div class="card">
+          <header class="card-header">
+            <p v-if="tambahFungsiFlag === false" class="card-header-title">
+              Edit Fungsi
+            </p>
+            <p v-if="tambahFungsiFlag === true" class="card-header-title">
+              Tambah Fungsi
+            </p>
+          </header>
+          <div class="card-content">
+            <div class="content">
+              <BTagValidations
+                placeholder="Pilih Fungsi"
+                rules="required"
+                autocomplete
+                type="text"
+                label="Fungsi *"
+                v-model="formFungsi.fungsi"
+                :data="dataFungsi"
+                v-if="tambahFungsiFlag === false"
+              />
+              <BTagValidations
+                v-if="tambahFungsiFlag === true"
+                placeholder="Pilih Menu"
+                rules="required"
+                autocomplete
+                type="text"
+                label="Menu *"
+                v-model="formRole.menu"
+                :before-adding="beforeAdding"
+                :data="getMenuVuex"
+              >
+              </BTagValidations>
+
+              <div class="buttons" style="margin-top: 20px">
+                <button
+                  class="button is-success"
+                  v-if="tambahFungsiFlag === false"
+                  @click="handleSubmit(editFungsiSubmit)"
+                >
+                  <span class="icon is-small">
+                    <i class="fas fa-check"></i>
+                  </span>
+                  <span>Submit</span>
+                </button>
+                <button
+                  class="button is-success"
+                  v-if="tambahFungsiFlag === true"
+                  @click="handleSubmit(tambahMenuSubmit)"
                 >
                   <span class="icon is-small">
                     <i class="fas fa-check"></i>

@@ -3,12 +3,17 @@
     :vid="vid"
     :name="$attrs.label"
     :rules="rules"
-    v-slot="{ errors }"
+    v-slot="{ errors, valid }"
   >
-    <div class="block">
+    <b-field
+      custom-class="is-small"
+      v-bind="$attrs"
+      :type="{ 'is-danger': errors[0], 'is-success': valid }"
+      :message="errors"
+    >
       <slot />
-      <p class="has-text-danger">{{ errors[0] }}</p>
-    </div>
+      <!-- <p class="has-text-danger">{{ errors[0] }}</p> -->
+    </b-field>
   </ValidationProvider>
 </template>
 

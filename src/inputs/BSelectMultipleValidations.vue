@@ -1,7 +1,7 @@
 <template>
   <ValidationProvider
     :vid="vid"
-    :name="$attrs.name || $attrs.label"
+    :name="$attrs.label"
     :rules="rules"
     v-slot="{ errors, valid }"
   >
@@ -12,7 +12,7 @@
       :type="{ 'is-danger': errors[0], 'is-success': valid }"
       :message="errors"
     >
-      <b-input v-model="innerValue" v-bind="$attrs"></b-input>
+      <v-select multiple :options="options" v-model="innerValue"> </v-select>
     </b-field>
   </ValidationProvider>
 </template>
@@ -25,8 +25,14 @@ export default {
     ValidationProvider,
   },
   props: {
+    placeholder: {
+      type: String,
+    },
     vid: {
       type: String,
+    },
+    options: {
+      type: [Array],
     },
     rules: {
       type: [Object, String],

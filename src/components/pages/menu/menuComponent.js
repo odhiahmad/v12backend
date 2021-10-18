@@ -14,20 +14,13 @@ export default {
         return {
             form: {
                 id: "",
-                id_menu: "",
+                idMenu: "",
                 nama: "",
                 keterangan: "",
                 icon: "",
-                status_menu: "",
+                statusMenu: "",
                 role: []
             },
-
-            cekMenu: "",
-            cekMenuInduk: "",
-
-
-            index: "",
-
             isiMenuInduk: [
                 {
                     label: "Menu Induk",
@@ -39,6 +32,10 @@ export default {
                 }
             ],
 
+
+            cekMenu: "",
+            cekMenuInduk: "",
+            index: "",
 
             placeholderMenuInduk: "Pilih Menu",
             isCardModalActive: false,
@@ -69,43 +66,38 @@ export default {
     },
     computed: {
         aksiRoleUser() {
-
             const menuUser = this.$store.getters.menuUser
             for (let i = 0; i < menuUser.length; i++) {
-                for (let j = 0; j < menuUser[i].anak.length; j++) {
-                    if (menuUser[i].anak[j].nama === 'menu') {
-                        return menuUser[i].anak[j].fungsi
-                    }
+                if (menuUser[i].nama === 'menu') {
+                    return menuUser[i].fungsi
                 }
             }
         },
 
     },
     methods: {
-
         selectJenisMenu(value) {
-
             if (value.value === 0) {
                 this.menuIndukAktif = false;
                 this.menuSubIndukAktif = false;
-                this.form.status_menu = 0;
-                this.form.id_menu = 0;
+                this.form.statusMenu = 0;
+                this.form.idMenu = 0;
 
             } else if (value.value === 1) {
                 this.menuIndukAktif = true;
                 this.menuSubIndukAktif = false;
-                this.form.status_menu = 1;
+                this.form.statusMenu = 1;
 
             }
 
         },
         selectMenuInduk(value) {
-            this.form.id_menu = value.value;
+            this.form.idMenu = value.value;
             this.dataMenuSubInduk = [];
             let dataTempMenuInduk = []
             if (parseInt(this.cekMenu.value) === 2) {
                 for (let i = 0; i < this.data.length; i++) {
-                    if (this.data[i].id_menu === value.value) {
+                    if (this.data[i].idMenu === value.value) {
                         dataTempMenuInduk[i] = {
                             label: this.data[i].nama,
                             value: this.data[i].id
@@ -130,38 +122,31 @@ export default {
             });
         },
         update(id) {
-            this.form.fungsi = [];
+
             this.index = id;
             this.editMode = true;
             this.form.id = this.data[id].id;
-            this.form.id_menu = this.data[id].id_menu;
+            this.form.idMenu = this.data[id].idMenu;
 
-            this.form.status_menu = this.data[id].status_menu;
+            this.form.statusMenu = this.data[id].statusMenu;
             this.form.nama = this.data[id].nama;
             this.form.keterangan = this.data[id].keterangan;
             this.form.icon = this.data[id].icon;
             this.isCardModalActive = true;
 
-            console.log(parseInt(this.data[id].fungsi.length))
 
-            if (parseInt(this.data[id].fungsi.length) > 0) {
-                this.data[id].fungsi.forEach((item) => {
-                    this.form.fungsi.push(item);
-                });
-            } else {
-                this.form.fungsi = [];
-            }
-            if (this.form.status_menu === 0) {
+
+            if (this.form.statusMenu === 0) {
                 this.menuIndukAktif = false;
                 this.menuSubIndukAktif = false;
                 this.cekMenu = [{ label: this.isiMenuInduk[0].label, value: this.form.id }]
-            } else if (this.form.status_menu === 1) {
+            } else if (this.form.statusMenu === 1) {
                 for (let i = 0; i < this.dataMenuInduk.length; i++) {
-                    if (this.dataMenuInduk[i].value === this.form.id_menu) {
+                    if (this.dataMenuInduk[i].value === this.form.idMenu) {
                         this.menuIndukAktif = true;
                         this.menuSubIndukAktif = false;
                         this.cekMenu = [{ label: this.isiMenuInduk[1].label, value: this.form.id }]
-                        this.cekMenuInduk = [{ label: this.dataMenuInduk[i].label, value: this.form.id_menu }]
+                        this.cekMenuInduk = [{ label: this.dataMenuInduk[i].label, value: this.form.idMenu }]
                         break;
                     }
                 }
@@ -178,7 +163,7 @@ export default {
             this.menuIndukAktif = false;
 
 
-            this.form.id_menu = "";
+            this.form.idMenu = "";
 
             this.form.nama = "";
             this.form.keterangan = "";
@@ -189,8 +174,8 @@ export default {
         },
         createMenu() {
             if (this.editMode === true) {
-                this.form.id_menu = this.data[this.index].id_menu;
-                this.form.id_menu_sub = this.data[this.index].id_menu_sub;
+                this.form.idMenu = this.data[this.index].idMenu;
+                this.form.idMenu_sub = this.data[this.index].idMenu_sub;
                 this.loading = true;
                 this.$http
                     .patch("menus/editMenu", { data: this.form })
@@ -343,7 +328,7 @@ export default {
                         this.dataMenuInduk[i] = {
                             label: data.menuInduk[i].nama,
                             value: data.menuInduk[i].id,
-                            value2: data.menuInduk[i].id_menu
+                            value2: data.menuInduk[i].idMenu
                         }
                     }
                     this.total = data.totalPage;

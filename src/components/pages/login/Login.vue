@@ -1,70 +1,98 @@
 <template>
-  <div class="container">
-    <div class="columns" style="min-height: 100%">
-      <div class="column is-8 gambar">
-        <b-image
-          :src="require('@/assets/loginBg.png')"
-          alt="The Buefy Logo"
-          :rounded="rounded"
-        ></b-image>
-      </div>
-      <div class="column is-4 styleColumn">
-        <div class="card boxStyle">
-          <div class="card loginCard">
-            <form class="box" @submit.prevent="userLogin">
-              <div class="field">
-                <label class="label">Username</label>
-                <div class="control">
-                  <input
-                    class="input"
-                    v-model="form.username"
-                    type="text"
-                    placeholder="e.g. alex@example.com"
-                  />
-                </div>
-              </div>
+  <section class="hero is-warning is-light is-fullheight">
+    <div class="hero-body">
+      <div class="container">
+        <div class="columns is-centered">
+          <div class="column is-8">
+            <b-image
+              :src="require('@/assets/loginBg.png')"
+              alt="The Buefy Logo"
+              :rounded="rounded"
+            ></b-image>
+          </div>
+          <div class="column is-4">
+            <div class="card boxStyle">
+              <div class="card loginCard">
+                <ValidationObserver ref="observer" v-slot="{ handleSubmit }">
+                  <div class="box">
+                    <BInputValidations
+                      rules="required"
+                      type="text"
+                      placeholder="Isikan email anda"
+                      label="Username *"
+                      v-model="form.email"
+                    />
 
-              <div class="field">
-                <label class="label">Password</label>
-                <div class="control">
-                  <input
-                    class="input"
-                    v-model="form.password"
-                    type="password"
-                    placeholder="********"
-                  />
-                </div>
-              </div>
+                    <BInputValidations
+                      rules="required"
+                      type="password"
+                      placeholder="Isikan password anda"
+                      label="Password *"
+                      v-model="form.password"
+                      password-reveal
+                    />
 
-              <button class="button is-primary">Sign in</button>
-            </form>
+                    <button
+                      class="button is-primary"
+                      @click="handleSubmit(userLogin)"
+                    >
+                      Sign in
+                    </button>
+                  </div>
+                </ValidationObserver>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
+    <b-loading :closable="false" v-model="loading"></b-loading>
+  </section>
 </template>
 <script>
+import BInputValidations from "./../../../inputs/BInputValidations";
+import { ValidationObserver } from "vee-validate";
 export default {
+  components: {
+    BInputValidations,
+    ValidationObserver,
+  },
   data() {
     return {
+      loading: false,
       rounded: false,
       form: {
-        username: "",
+        email: "",
         password: "",
       },
       errors: null,
     };
   },
   methods: {
+    resetForm() {
+      requestAnimationFrame(() => {
+        this.$refs.observer.reset();
+      });
+    },
     userLogin() {
+      this.loading = true;
       this.$store
         .dispatch("login", this.form)
         .then((response) => {
-          if (response.data.berhasil == true) {
+          console.log(response);
+          if (response.data.berhasil === true) {
             this.$router.push({ name: "page" });
-          } else {
-            this.$router.push({ name: "login" });
+            this.loading = false;
+            this.$buefy.toast.open({
+              message: response.data.pesan,
+              type: "is-success",
+            });
+          } else if (response.data.berhasil === false) {
+            this.loading = false;
+            this.$buefy.toast.open({
+              message: response.data.pesan,
+              type: "is-success",
+            });
           }
         })
         .catch((error) => {
@@ -75,24 +103,3 @@ export default {
 };
 </script>
 
-<style>
-.gambar {
-  margin-top: 20;
-}
-.loginCard {
-  margin-top: 50%;
-  justify-content: center;
-  align-items: center;
-}
-.styleColumn {
-  align-items: center;
-  justify-content: center;
-  background-color: white;
-}
-/* .boxStyle {
-  height: 100%;
-} */
-/* .styleColumn {
-  border-left: solid black 2px;
-} */
-</style>
